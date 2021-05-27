@@ -5,9 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'FlutterWidgetData2.dart';
 import 'add_todo2.dart';
 
-
 class MyApp3 extends StatelessWidget {
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -15,7 +13,7 @@ class MyApp3 extends StatelessWidget {
       title: 'Flutter Demo',
       theme: ThemeData(
         primarySwatch: Colors.blue,
-        scaffoldBackgroundColor: Colors.grey.shade300,
+        scaffoldBackgroundColor: Colors.white,
       ),
       home: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
@@ -35,6 +33,7 @@ class _TodoListPageState extends State<TodoListPage3> {
   List<String> todoList2 = [];
   String text = '';
   bool finish = false;
+  String listString = '';
 
   @override
   void initState() {
@@ -72,13 +71,15 @@ class _TodoListPageState extends State<TodoListPage3> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       todoList2 = prefs.getStringList('key') ?? [];
-
+      //TODO todoList2をなんとかしてStringにすることで行けそう？？
+      // listString = todoList2.map((e) => listString).join('');
+      WidgetKit.setItem('widgetData', jsonEncode(FlutterWidgetData(todoList2.join('\n'))), 'group.com.ryutaro');
+      WidgetKit.reloadAllTimelines();
     });
   }
 
   @override
   void setState(VoidCallback fn) {
-    // TODO: implement setState
     super.setState(fn);
     setState(() {
       sharePrefrence();
@@ -88,62 +89,60 @@ class _TodoListPageState extends State<TodoListPage3> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      /*
-      appBar: AppBar(
-        title: Text('',style: TextStyle(color: Colors.blue),),
-        backgroundColor: Colors.white,
-        leading: IconButton(
-          icon: Icon(Icons.event,color: Colors.blue,),
-          onPressed: () {
-            WidgetKit.setItem('widgetData', jsonEncode(FlutterWidgetData(text)), 'group.com.ryutaro');
-            WidgetKit.reloadAllTimelines();
-          },
-        ),
-         ),
-         */
-
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 5,vertical: 20),
         child: ListView.builder(
             itemCount: todoList2.length,
             itemBuilder: (context, index) {
               return Dismissible(
+                // スワイプ方向がendToStart（画面左から右）の場合のバックグラウンドの設定
+                background: Container(
+                  alignment: Alignment.centerLeft,
+                  color: Colors.greenAccent[700],
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(20.0, 0.0, 0.0, 0.0),
+                    child:  Icon(Icons.thumb_up, color: Colors.white),),),
+                // スワイプ方向がstartToEnd（画面右から左）の場合のバックグラウンドの設定
+                secondaryBackground: Container(
+                  alignment: Alignment.centerRight,
+                  color: Colors.red,
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(10.0, 0.0, 20.0, 0.0),
+                    child:  Icon(Icons.restore_from_trash, color: Colors.white),
+                  ),
+                ),
                 key: Key(todoList2[index]),
                 onDismissed: (direction) {
                   setState(() {
+                    //どちらにせよ消えてしまう。
                     todoList2.removeAt(index);
                   });
+                  // スワイプ方向がendToStart（画面左から右）の場合の処理
                   if (direction == DismissDirection.endToStart) {
                     Scaffold.of(context).showSnackBar(
                         SnackBar(content: Text("削除しました"))
                     );
                   }
                 },
-
-                child: Card(
-                  child: ListTile(
-                    title: Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        IconButton(onPressed: () {
-                           setState(() {
-                             if (finish == false) {
-                               finish = true;
-                               WidgetKit.removeItem('widgetData', 'group.com.ryutaro');
-                               WidgetKit.reloadAllTimelines();
-
-                             }else{
-                               finish = false;
-                               //これをWidget単位でする必要がある。
-                               WidgetKit.setItem('widgetData', jsonEncode(FlutterWidgetData('true')), 'group.com.ryutaro');
-                               WidgetKit.reloadAllTimelines();
-                             }
-                           });
-                        },
-                          icon: Icon((finish == false) ? Icons.check_box : Icons.check_box_outline_blank),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 5),
+                  child: Card(
+                    child: Container(
+                      decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey.shade200)
+                      ),
+                      child: ListTile(
+                        title: FlatButton(
+                          onPressed: () {
+                            WidgetKit.setItem('widgetData', jsonEncode(FlutterWidgetData(todoList2.join('\n'))), 'group.com.ryutaro');
+                            WidgetKit.reloadAllTimelines();
+                            print(index);
+                          },
+                          child: Container(
+                              alignment: Alignment.topLeft,
+                              child: Text(todoList2[index],style: TextStyle(fontSize: 15),)),
                         ),
-                        Text(todoList2[index]),
-                      ],
+                      ),
                     ),
                   ),
                 ),

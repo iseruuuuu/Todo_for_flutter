@@ -3,8 +3,7 @@ class FlutterWidgetData {
 
   FlutterWidgetData(this.text2);
 
-  FlutterWidgetData.fromJson(Map<String, dynamic> json)
-      : text2 = json['text'];
+  FlutterWidgetData.fromJson(Map<String, dynamic> json) : text2 = json['text'];
 
   Map<String, dynamic> toJson() =>
       {
